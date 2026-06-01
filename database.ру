@@ -1,0 +1,90 @@
+import sqlite3
+from datetime import datetime, timedelta
+
+conn = sqlite3.connect("users.db", check_same_thread=False)
+cur = conn.cursor()
+
+cur.execute("""
+CREATE TABLE IF NOT EXISTS users (
+    user_id INTEGER PRIMARY KEY,
+    requests INTEGER DEFAULT 0,
+    premium_until TEXT
+)
+""")
+
+cur.execute("""
+CREATE TABLE IF NOT EXISTS memory (
+    user_id INTEGER,
+    role TEXT,
+    content TEXT,
+    timestamp TEXT
+)
+""")
+
+conn.commit()
+
+# ---------- USERS ----------
+
+def get_user(user_id):
+    cur.execute("SELECT * FROM users WHERE user_id=?", (user_id,))
+    user = cur.fetchone()
+
+    if not user:
+        cur.execute("INSERT INTO users VALUES (?,0,NULL)", (user_id,))
+        conn.commit()
+        return (user_id, 0, None)
+
+    return user
+
+
+def add_request(user_id):
+    cur.execute("UPDATE users SET requests = requests + 1 WHERE user_id=?", (user_id,))
+    conn.commit()
+
+
+# ---------- PREMIUM ----------
+
+def set_premium(user_id, days=30):
+    until = (datetime.now() + timedelta(days=days)).strftime("%Y-%m-%d %H:%M:%S")
+    cur.execute("UPDATE users SET premium_until=? WHERE user_id=?", (until, user_id))
+    conn.commit()
+
+
+def extend_premium(user_id, days=30):
+    user = get_user(user_id)
+
+    if user[2]:
+        current = datetime.strptime(user[2], "%Y-%m-%d %H:%M:%S")
+        if current > datetime.now():
+            new_date = current + timedelta(days=days)
+        else:
+            new_date = datetime.now() + timedelta(days=days)
+    else:
+        new_date = datetime.now() + timedelta(days=days)
+
+    cur.execute("UPDATE users SET premium_until=? WHERE user_id=?",
+                (new_date.strftime("%Y-%m-%d %H:%M:%S"), user_id))
+    conn.commit()
+
+
+# ---------- MEMORY ----------
+
+def save_message(user_id, role, content):
+    cur.execute(
+        "INSERT INTO memory VALUES (?,?,?,?)",
+        (user_id, role, content, datetime.now().isoformat())
+    )
+    conn.commit()
+
+
+def get_memory(user_id, limit=12):
+    cur.execute("""
+        SELECT role, content
+        FROM memory
+        WHERE user_id=?
+        ORDER BY timestamp DESC
+        LIMIT ?
+    """, (user_id, limit))
+
+    rows = cur.fetchall()
+    return list(reversed(rows))
