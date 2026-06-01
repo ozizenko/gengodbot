@@ -40,8 +40,8 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if text == "💎 Premium":
         await context.bot.send_invoice(
             chat_id=update.effective_chat.id,
-            title="Premium GenGodbot",
-            description="Подписка 30 дней",
+            title="TEST 100 STARS",
+            description="Тестовая подписка",
             payload="premium",
             provider_token="",
             currency="XTR",
