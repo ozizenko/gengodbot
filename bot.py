@@ -45,7 +45,7 @@ async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
             payload="premium",
             provider_token="",
             currency="XTR",
-            prices=[LabeledPrice("Premium", 10000)]
+            prices=[LabeledPrice("Premium", 1)]
         )
         return
 
