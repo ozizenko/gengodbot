@@ -29,7 +29,7 @@ def ask_ai(user_id, text):
     return r.choices[0].message.content
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Привет! Я GenGodbot 🤖", reply_markup=keyboard)
+    await update.message.reply_text("RAILWAY TEST 12345", reply_markup=keyboard)
 
 async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
